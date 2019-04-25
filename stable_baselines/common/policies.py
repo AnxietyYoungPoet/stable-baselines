@@ -99,7 +99,7 @@ class BasePolicy(ABC):
     :param n_steps: (int) The number of steps to run for each environment
     :param n_batch: (int) The number of batch to run (n_envs * n_steps)
     :param reuse: (bool) If the policy is reusable or not
-    :param scale: (bool) whether or not to scale the input
+    :param scale: (bool) whether or not to scale the input. Only available when using CNN extractor
     :param obs_phs: (TensorFlow Tensor, TensorFlow Tensor) a tuple containing an override for observation placeholder
         and the processed observation placeholder respectivly
     :param add_action_ph: (bool) whether or not to create an action placeholder
@@ -111,6 +111,7 @@ class BasePolicy(ABC):
         self.n_steps = n_steps
         with tf.variable_scope("input", reuse=False):
             if obs_phs is None:
+                # observation_input returns the obs_ph and processed (one_hot (box env) or cast to tf.float32)
                 self.obs_ph, self.processed_obs = observation_input(ob_space, n_batch, scale=scale)
             else:
                 self.obs_ph, self.processed_obs = obs_phs
@@ -138,6 +139,7 @@ class BasePolicy(ABC):
         # are not passed explicitely (using **kwargs to forward the arguments)
         # that's why there should be not kwargs left when using the mlp_extractor
         # (in that case the keywords arguments are passed explicitely)
+        # when using mlp as extractor, there should be no keywords arguments
         if feature_extraction == 'mlp' and len(kwargs) > 0:
             raise ValueError("Unknown keywords for policy: {}".format(kwargs))
 
@@ -455,7 +457,7 @@ class FeedForwardPolicy(ActorCriticPolicy):
     def proba_step(self, obs, state=None, mask=None):
         return self.sess.run(self.policy_proba, {self.obs_ph: obs})
 
-    def value(self, obs, state=None, mask=None):
+    def value(self, obs, state=None, mask=None):  # state value
         return self.sess.run(self._value, {self.obs_ph: obs})
 
 

@@ -161,10 +161,15 @@ class TRPO(ActorCriticRLModel):
                     dist = meankl
 
                     all_var_list = tf_util.get_trainable_vars("model")
+                    # pi params
                     var_list = [v for v in all_var_list if "/vf" not in v.name and "/q/" not in v.name]
+                    # vf params
                     vf_var_list = [v for v in all_var_list if "/pi" not in v.name and "/logstd" not in v.name]
 
+                    # return a vector of given var_list
                     self.get_flat = tf_util.GetFlat(var_list, sess=self.sess)
+                    # assign value to var_lsit from a given flat vector
+                    # self.set_from_flat(new_flat_vec)
                     self.set_from_flat = tf_util.SetFromFlat(var_list, sess=self.sess)
 
                     klgrads = tf.gradients(dist, var_list)
@@ -178,7 +183,8 @@ class TRPO(ActorCriticRLModel):
                         start += var_size
                     gvp = tf.add_n([tf.reduce_sum(grad * tangent)
                                     for (grad, tangent) in zipsame(klgrads, tangents)])  # pylint: disable=E1111
-                    fvp = tf_util.flatgrad(gvp, var_list)
+                    # Hx = self.sess.run(fvp, feed_dict={flat_tangent: x})
+                    fvp = tf_util.flatgrad(gvp, var_list) # Hessian prod
 
                     tf.summary.scalar('entropy_loss', meanent)
                     tf.summary.scalar('policy_gradient_loss', optimgain)

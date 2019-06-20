@@ -111,7 +111,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
         cur_ep_ret += rew
         cur_ep_true_ret += true_rew
         current_it_len += 1
-        if done:
+        if done or current_it_len == 1000:
             ep_rets.append(cur_ep_ret)
             ep_true_rets.append(cur_ep_true_ret)
             ep_lens.append(current_it_len)

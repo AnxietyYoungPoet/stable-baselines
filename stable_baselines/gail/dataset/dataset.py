@@ -29,7 +29,7 @@ class ExpertDataset(object):
         the data (slower but use less memory for the CI)
     """
 
-    def __init__(self, expert_path, train_fraction=0.7, batch_size=64,
+    def __init__(self, expert_path, train_fraction=0.7, batch_size=128,
                  traj_limitation=-1, randomize=True, verbose=1,
                  sequential_preprocessing=False):
         traj_data = np.load(expert_path)

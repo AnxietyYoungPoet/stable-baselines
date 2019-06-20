@@ -41,8 +41,8 @@ class TRPO(ActorCriticRLModel):
         WARNING: this logging can take a lot of space quickly
     """
 
-    def __init__(self, policy, env, gamma=0.99, timesteps_per_batch=1024, max_kl=0.01, cg_iters=10, lam=0.98,
-                 entcoeff=0.0, cg_damping=1e-2, vf_stepsize=3e-4, vf_iters=3, verbose=0, tensorboard_log=None,
+    def __init__(self, policy, env, gamma=0.99, timesteps_per_batch=1000, max_kl=0.01, cg_iters=10, lam=0.97,
+                 entcoeff=0.0, cg_damping=0.1, vf_stepsize=1e-3, vf_iters=80, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False):
         super(TRPO, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=False,
                                    _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs)
@@ -61,7 +61,7 @@ class TRPO(ActorCriticRLModel):
         self.full_tensorboard_log = full_tensorboard_log
 
         # GAIL Params
-        self.hidden_size_adversary = 100
+        self.hidden_size_adversary = 128
         self.adversary_entcoeff = 1e-3
         self.expert_dataset = None
         self.g_step = 1
@@ -147,7 +147,7 @@ class TRPO(ActorCriticRLModel):
                     meanent = tf.reduce_mean(ent)
                     entbonus = self.entcoeff * meanent
 
-                    vferr = tf.reduce_mean(tf.square(self.policy_pi.value_fn[:, 0] - ret))
+                    vferr = tf.reduce_mean((tf.squeeze(self.policy_pi.value_fn, axis=1) - ret)**2)
 
                     # advantage * pnew / pold
                     ratio = tf.exp(self.policy_pi.proba_distribution.logp(action) -

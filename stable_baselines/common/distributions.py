@@ -165,9 +165,9 @@ class CategoricalProbabilityDistributionType(ProbabilityDistributionType):
         return CategoricalProbabilityDistribution
 
     def proba_distribution_from_latent(self, pi_latent_vector, vf_latent_vector, init_scale=1.0, init_bias=0.0):
-        pdparam = linear(pi_latent_vector, 'pi', self.n_cat, init_scale=init_scale, init_bias=init_bias)
+        pi_logits = linear(pi_latent_vector, 'pi', self.n_cat, init_scale=init_scale, init_bias=init_bias)
         q_values = linear(vf_latent_vector, 'q', self.n_cat, init_scale=init_scale, init_bias=init_bias)
-        return self.proba_distribution_from_flat(pdparam), pdparam, q_values
+        return self.proba_distribution_from_flat(pi_logits), pi_logits, q_values
 
     def param_shape(self):
         return [self.n_cat]

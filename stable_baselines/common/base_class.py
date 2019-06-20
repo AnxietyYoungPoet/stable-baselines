@@ -167,7 +167,7 @@ class BaseRLModel(ABC):
         """
         pass
 
-    def pretrain(self, dataset, n_epochs=10, learning_rate=1e-4,
+    def pretrain(self, dataset, n_epochs=10, learning_rate=1e-3,
                  adam_epsilon=1e-8, val_interval=None):
         """
         Pretrain a model using behavior cloning:
@@ -200,7 +200,7 @@ class BaseRLModel(ABC):
             with tf.variable_scope('pretrain'):
                 if continuous_actions:
                     obs_ph, actions_ph, deterministic_actions_ph = self._get_pretrain_placeholders()
-                    loss = tf.reduce_mean(tf.square(actions_ph - deterministic_actions_ph))
+                    loss = tf.reduce_mean(tf.reduce_sum((actions_ph - deterministic_actions_ph)**2, axis=1))
                 else:
                     obs_ph, actions_ph, actions_logits_ph = self._get_pretrain_placeholders()
                     # actions_ph has a shape if (n_batch,), we reshape it to (n_batch, 1)

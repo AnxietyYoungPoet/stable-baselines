@@ -12,6 +12,7 @@ class NoopResetEnv(gym.Wrapper):
         """
         Sample initial states by taking random number of no-ops on reset.
         No-op is assumed to be action 0.
+        Introduced to randomize the environment. Only works on reset function.
 
         :param env: (Gym Environment) the environment to wrap
         :param noop_max: (int) the maximum value of no-ops to run
@@ -119,7 +120,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         """
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros((2,)+env.observation_space.shape, dtype=env.observation_space.dtype)
+        self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=env.observation_space.dtype)
         self._skip = skip
 
     def step(self, action):

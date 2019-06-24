@@ -116,6 +116,7 @@ class FeedForwardPolicy(DQNPolicy):
 
                 action_scores = tf_layers.fully_connected(action_out, num_outputs=self.n_actions, activation_fn=None)
 
+            # dueling network
             if self.dueling:
                 with tf.variable_scope("state_value"):
                     state_out = extracted_features

@@ -1,4 +1,5 @@
 import warnings
+# When some list exhausted, the fillvalue is substituted in their place with default value None.
 from itertools import zip_longest
 from abc import ABC
 
@@ -9,6 +10,7 @@ from gym.spaces import Discrete
 from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
 from stable_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
+# generates input ph and preprocessed ph. For Box space, scale it to [0, 1] if possible
 from stable_baselines.common.input import observation_input
 
 
@@ -100,6 +102,7 @@ class BasePolicy(ABC):
     :param n_batch: (int) The number of batch to run (n_envs * n_steps)
     :param reuse: (bool) If the policy is reusable or not
     :param scale: (bool) whether or not to scale the input. Only available when using CNN extractor
+    for other obs_spaces, the scope of the obs is infinite, hence can not be scaled.
     :param obs_phs: (TensorFlow Tensor, TensorFlow Tensor) a tuple containing an override for observation placeholder
         and the processed observation placeholder respectivly
     :param add_action_ph: (bool) whether or not to create an action placeholder
@@ -183,10 +186,10 @@ class ActorCriticPolicy(BasePolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, scale=False):
         super(ActorCriticPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse,
                                                 scale=scale)
-        self.pdtype = make_proba_dist_type(ac_space)
+        self.pdtype = make_proba_dist_type(ac_space)  # An instance of probabilityDistribution type class
         self.is_discrete = isinstance(ac_space, Discrete)
-        self.policy = None
-        self.proba_distribution = None
+        self.policy = None  # the network that generates the logits or mean and std.
+        self.proba_distribution = None  # an instance of ProbabilityDistribution class
         self.value_fn = None
         self.deterministic_action = None
         self.initial_state = None
@@ -412,11 +415,13 @@ class FeedForwardPolicy(ActorCriticPolicy):
     :param kwargs: (dict) Extra keyword arguments for the nature CNN feature extraction
     """
 
+    # The layers, net_arch, act_fun parameters are provided for using mlp_extractor only.
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None, net_arch=None,
                  act_fun=tf.tanh, cnn_extractor=nature_cnn, feature_extraction="cnn", **kwargs):
         super(FeedForwardPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse,
                                                 scale=(feature_extraction == "cnn"))
 
+        # only the cnn_extractor has extra kwargs
         self._kwargs_check(feature_extraction, kwargs)
 
         if layers is not None:
@@ -426,6 +431,7 @@ class FeedForwardPolicy(ActorCriticPolicy):
                 warnings.warn("The new `net_arch` parameter overrides the deprecated `layers` parameter!",
                               DeprecationWarning)
 
+        # net_arch = [int,..int, dict(vf=layers1, pi=layers2)].
         if net_arch is None:
             if layers is None:
                 layers = [128, 128]
@@ -435,6 +441,7 @@ class FeedForwardPolicy(ActorCriticPolicy):
             if feature_extraction == "cnn":
                 pi_latent = vf_latent = cnn_extractor(self.processed_obs, **kwargs)
             else:
+                # layers.flatten preserves the batch axis (axis 0)
                 pi_latent, vf_latent = mlp_extractor(tf.layers.flatten(self.processed_obs), net_arch, act_fun)
 
             self.value_fn = linear(vf_latent, 'vf', 1)

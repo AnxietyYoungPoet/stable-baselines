@@ -14,6 +14,8 @@ class ProbabilityDistribution(object):
     def flatparam(self):
         """
         Return the direct probabilities
+        For Categorical, the return is the logit. For Gaussian,
+        the return is the mean and std.
 
         :return: ([float]) the probabilites
         """
@@ -80,6 +82,7 @@ class ProbabilityDistributionType(object):
     def probability_distribution_class(self):
         """
         returns the ProbabilityDistribution class of this type
+        probability_distribution_class() returns the probabilityDistribution class, but not an instance.
 
         :return: (Type ProbabilityDistribution) the probability distribution class associated
         """
@@ -89,6 +92,7 @@ class ProbabilityDistributionType(object):
         """
         Returns the probability distribution from flat probabilities
         flat: flattened vector of parameters of probability distribution
+        returns an instance of the probabilityDistribution class with params flat.
 
         :param flat: ([float]) the flat probabilities
         :return: (ProbabilityDistribution) the instance of the ProbabilityDistribution associated
@@ -320,6 +324,7 @@ class CategoricalProbabilityDistribution(ProbabilityDistribution):
     def sample(self):
         # Gumbel-max trick to sample
         # a categorical distribution (see http://amid.fish/humble-gumbel)
+        # This is the re-parameterize trick. The sampled action is differentiable w.r.t. logits.
         uniform = tf.random_uniform(tf.shape(self.logits), dtype=self.logits.dtype)
         return tf.argmax(self.logits - tf.log(-tf.log(uniform)), axis=-1)
 

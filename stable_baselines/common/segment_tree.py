@@ -21,6 +21,7 @@ class SegmentTree(object):
         :param operation: (lambda (Any, Any): Any) operation for combining elements (eg. sum, max) must form a
             mathematical group together with the set of possible values for array elements (i.e. be associative)
         :param neutral_element: (Any) neutral element for the operation above. eg. float('-inf') for max and 0 for sum.
+        that is, adding any neutral element to the operation will not change the output.
         """
         assert capacity > 0 and capacity & (capacity - 1) == 0, "capacity must be positive and a power of 2."
         self._capacity = capacity

@@ -367,6 +367,9 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             act_f, obs_phs = build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess)
 
         # q network evaluation
+        # the custom_getter removes the scope, hence the tf.variable_scope below does not create
+        # a new scope, the same for the double q.
+        # Therefore, double_q and step_model share the same parameters
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
             step_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
         q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=tf.get_variable_scope().name + "/model")
